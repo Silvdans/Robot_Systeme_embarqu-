@@ -1,25 +1,26 @@
 import random
-LEN_GRID=66
-def set_emtpy_tab():
+LEN_GRID_DEFAULT = 66
+
+def set_emtpy_tab(grid_lenght):
     tableau = []
-    for i in range(66):
+    for i in range(grid_lenght):
         ligne = []
-        for j in range(66):
+        for j in range(grid_lenght):
             ligne.append(0)
         tableau.append(ligne)
 
-    for i in range(66):
+    for i in range(grid_lenght):
         tableau[i][0] = -1
-        tableau[i][65] = -1
+        tableau[i][grid_lenght - 1] = -1
         tableau[0][i] = -1
-        tableau[65][i] = -1
+        tableau[grid_lenght - 1][i] = -1
     
     return tableau
-def set_tableau():
+def set_tableau(grid_lenght):
     tableau = []
-    for i in range(66):
+    for i in range(grid_lenght):
         ligne = []
-        for j in range(66):
+        for j in range(grid_lenght):
             ligne.append(0)
         tableau.append(ligne)
 
@@ -27,27 +28,30 @@ def set_tableau():
     check = set()
     while len(check) !=900:
         
-        x = random.randint(1, 64)
-        y = random.randint(1, 64)
+        x = random.randint(1, grid_lenght - 2)
+        y = random.randint(1, grid_lenght - 2)
         if (x,y) not in check and not (x == 1 and y == 1):
             check.add((x,y))
             tableau[x][y] = -1
 
     # Ajouter des -1 sur les bordures du tableau
-    for i in range(66):
+    for i in range(grid_lenght):
         tableau[i][0] = -1
-        tableau[i][65] = -1
+        tableau[i][grid_lenght - 1] = -1
         tableau[0][i] = -1
-        tableau[65][i] = -1
+        tableau[grid_lenght - 1][i] = -1
     
     return tableau
 class Robot:
     x, y = 1, 1
-    last_case = None
-    real_grid = set_tableau()
-    prediction_grid = set_emtpy_tab()
-    def mark_case_as_seen(self, grid, x, y):
-        grid[x][y] = 1
+    grid_lenght = 0
+    real_grid = None
+    prediction_grid = None
+    
+    def __init__(self, grid_lenght : int) -> None:
+        self.grid_lenght = grid_lenght
+        self.real_grid = set_tableau(self.grid_lenght)
+        self.prediction_grid = set_emtpy_tab(self.grid_lenght)
 
     def mark_wall(self, dir):
         if dir == "right":
@@ -58,25 +62,20 @@ class Robot:
             self.prediction_grid[self.x][self.y - 1] = -1
         elif dir == "up":
             self.prediction_grid[self.x - 1][self.y] = -1
-    def is_scan_finished(self):
-        for i in range(66):
-            for j in range(66):
+
+    def mark_case_as_seen(self, grid, x, y):
+        grid[x][y] = 1
+        
+    def is_scan_finished(self, grid_lenght):
+        if(self.check_has_wall_all_around_him()):
+            return True
+        for i in range(grid_lenght):
+            for j in range(grid_lenght):
                 if self.prediction_grid[i][j] == 0:
                     return False
         return True
-    def can_go_check_last_case(self, dir):
-        if dir == "right":
-            return not self.last_case ==  (self.x, self.y+1)
-        elif dir == "down":
-            return not self.last_case ==  (self.x+1, self.y)
-        elif dir == "left":
-            return not self.last_case ==  (self.x, self.y-1)
-        elif dir == "up":
-            return not self.last_case ==  (self.x - 1, self.y)
 
     def _can_walk_to_next_case(self, grid, dir):
-        if(not self.can_go_check_last_case(dir)):
-            return False
         if dir == "right":
             return grid[self.x][self.y + 1] != -1
         elif dir == "down":
@@ -87,7 +86,6 @@ class Robot:
             return grid[self.x- 1][self.y ] != -1
 
     def moveForward(self, dir):
-        last_case = (self.x, self.y)
         if dir == "right":
             self.y += 1
         elif dir == "down":
@@ -107,16 +105,11 @@ class Robot:
         elif dir == "up":
             return "right"
     
-    def turnLeft(self, dir):
-        if dir == "right":
-            return "up"
-        elif dir == "down":
-            return "right"
-        elif dir == "left":
-            return "down"
-        elif dir == "up":
-            return "left"
-    
+    def check_has_wall_all_around_him(self):
+        if self.prediction_grid[self.x][self.y + 1] == -1 and self.prediction_grid[self.x + 1][self.y] == -1 and self.prediction_grid[self.x][self.y - 1] == -1 and self.prediction_grid[self.x - 1][self.y] == -1:
+            return True
+        return False 
+        
     def scan(self, dir = "right"):
         self.mark_case_as_seen(self.prediction_grid, self.x, self.y)
         if(self._can_walk_to_next_case(self.real_grid, dir)):
@@ -163,12 +156,9 @@ def generate_file(tableau, filename):
 
 
 
-robot = Robot()
-tableau = set_tableau()
-generate_file(tableau, "vraitable.html")
+robot = Robot(LEN_GRID_DEFAULT)
+generate_file(robot.real_grid, "vraitable.html")
 prediction = robot.scan()
 generate_file(prediction, "prediction.html")
-
-print(tableau == prediction)
 #I want a function that simulate a robot parcouring the tableau, but the robot dont have the information on the whole tableau, he can look the case in front on him, he can rotate, and he can move forward, write a function that scan the array and return the number of 1 that the robot can see
 

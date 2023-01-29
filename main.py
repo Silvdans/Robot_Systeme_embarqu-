@@ -117,11 +117,7 @@ class Robot:
             else:
                 self.mark_wall(next_coordinates)
             self.direction = self.update_direction()
-        for item in self.real_grid:
-            print(item)
-        for item in self.prediction_grid:
-            print(item)
-
+            
         return self.prediction_grid
         
 def generate_file(tableau, filename):

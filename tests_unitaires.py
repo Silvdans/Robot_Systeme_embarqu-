@@ -1,6 +1,6 @@
 import unittest
-from script import Robot
-from script import replace_all_0_by_1, set_tableau
+from main import Robot
+from main import replace_all_0_by_1, set_tableau
 
 class Test_Array(unittest.TestCase):
 

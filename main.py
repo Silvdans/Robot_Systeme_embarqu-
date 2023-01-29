@@ -146,10 +146,3 @@ def generate_file(tableau, filename):
     # Fermer le fichier
     f.close()
 
-
-
-if __name__ == "__main__":
-    tab = set_tableau(66)
-    generate_file(tab, "vraitable.html")
-    #I want a function that simulate a robot parcouring the tableau, but the robot dont have the information on the whole tableau, he can look the case in front on him, he can rotate, and he can move forward, write a function that scan the array and return the number of 1 that the robot can see
-

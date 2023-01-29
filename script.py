@@ -17,7 +17,7 @@ def set_emtpy_tab(grid_lenght):
         tableau[grid_lenght - 1][grid_lenght - 1] = -1
     
     return tableau
-def set_tableau(grid_lenght):
+def set_tableau(grid_lenght, number_of_wall = 100):
     tableau = []
     for i in range(grid_lenght):
         ligne = []
@@ -27,13 +27,14 @@ def set_tableau(grid_lenght):
 
     # Remplacer au hasard 10 valeurs par des 1
     check = set()
-    while len(check) !=900:
+    while len(check) != number_of_wall:
         
-        x = random.randint(1, grid_lenght - 2)
-        y = random.randint(1, grid_lenght - 2)
+        x = random.randint(2, grid_lenght - 3)
+        y = random.randint(2, grid_lenght - 3)
         if (x,y) not in check and not (x == 1 and y == 1):
-            check.add((x,y))
-            tableau[x][y] = -1
+            if tableau[x-1][y] != -1 or tableau[x+1][y] != -1 or tableau[x][y-1] != -1 or tableau[x][y+1] != -1: #Empecher que une case soit enfermée de murs
+                check.add((x,y))
+                tableau[x][y] = -1
 
     # Ajouter des -1 sur les bordures du tableau
     for i in range(grid_lenght):
@@ -57,9 +58,8 @@ class Robot:
     grid_lenght = 0
     real_grid : list = None 
     prediction_grid : list = None
-    direction = "right"
-    
-    visited_walls = set()
+    direction = ""
+    visited_walls = None
     counter = 1
         
     def __init__(self, grid_lenght, read_grid = None):
@@ -70,6 +70,8 @@ class Robot:
             self.real_grid = read_grid
         self.prediction_grid = set_emtpy_tab(grid_lenght)
         self.prediction_grid[1][1] = 1
+        self.direction = random.choice(["right", "left", "up", "down"])
+        self.visited_walls = set()
     
     def get_next_coordinates(self):
         if(self.direction == "right"):
@@ -85,10 +87,11 @@ class Robot:
     
     def can_move(self, coordinates : tuple):
         x, y = coordinates
-        return self.real_grid[x][y] != -1 and self.real_grid[x][y] != 1
+        return self.real_grid[x][y] != -1
    
     def mark_case_as_visited(self, coordinates : tuple):
         x, y = coordinates
+        self.counter += 1
         self.prediction_grid[x][y] = 1
     
     def is_scan_complete(self):
@@ -96,8 +99,8 @@ class Robot:
     
     def update_coordinates(self, coordinates : tuple):
         self.x, self.y = coordinates
-        self.counter += 1
-        self.mark_case_as_visited(coordinates)
+        if self.prediction_grid[self.x][self.y] == 0:
+            self.mark_case_as_visited(coordinates)
 
     def mark_wall(self, coordinates : tuple):
         x, y = coordinates
@@ -113,8 +116,12 @@ class Robot:
                 self.update_coordinates(next_coordinates)
             else:
                 self.mark_wall(next_coordinates)
-                self.direction = self.update_direction()
-        
+            self.direction = self.update_direction()
+        for item in self.real_grid:
+            print(item)
+        for item in self.prediction_grid:
+            print(item)
+
         return self.prediction_grid
         
 def generate_file(tableau, filename):
@@ -142,9 +149,7 @@ def generate_file(tableau, filename):
 
 
 if __name__ == "__main__":
-    robot = Robot(LEN_GRID_DEFAULT)
-    generate_file(robot.real_grid, "vraitable.html")
-    prediction = robot.scan()
-    generate_file(prediction, "prediction.html")
+    tab = set_tableau(66)
+    generate_file(tab, "vraitable.html")
     #I want a function that simulate a robot parcouring the tableau, but the robot dont have the information on the whole tableau, he can look the case in front on him, he can rotate, and he can move forward, write a function that scan the array and return the number of 1 that the robot can see
 
